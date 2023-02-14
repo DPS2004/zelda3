@@ -31,6 +31,7 @@ enum {
   kFeatures0_SkipIntroOnKeypress = 128,
   kFeatures0_ShowMaxItemsInYellow = 256,
   kFeatures0_MoreActiveBombs = 512,
+  kFeatures0_ModernizeControls = 65536,
 
   // This is set for visual fixes that don't affect game behavior but will affect ram compare.
   kFeatures0_WidescreenVisualFixes = 1024,
@@ -54,6 +55,8 @@ enum {
 #define hud_cur_item_x (*(uint8*)(g_ram+0x656))
 #define hud_cur_item_l (*(uint8*)(g_ram+0x657))
 #define hud_cur_item_r (*(uint8*)(g_ram+0x658))
+#define analog_x (*(int8*)(g_ram+0x659))
+#define analog_y (*(int8*)(g_ram+0x65a))
 
 
 

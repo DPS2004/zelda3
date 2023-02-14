@@ -436,7 +436,9 @@ static bool HandleIniConfig(int section, const char *key, char *value) {
       return ParseBool(value, &g_config.disable_frame_delay);
     }
   } else if (section == 4) {
-    if (StringEqualsNoCase(key, "ItemSwitchLR")) {
+    if (StringEqualsNoCase(key, "ModernizeControls")) {
+      return ParseBoolBit(value, &g_config.features0, kFeatures0_ModernizeControls);
+	} else if (StringEqualsNoCase(key, "ItemSwitchLR")) {
       return ParseBoolBit(value, &g_config.features0, kFeatures0_SwitchLR);
     } else if (StringEqualsNoCase(key, "ItemSwitchLRLimit")) {
       return ParseBoolBit(value, &g_config.features0, kFeatures0_SwitchLRLimit);

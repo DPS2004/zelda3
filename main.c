@@ -741,6 +741,24 @@ static void HandleGamepadAxisInput(int gamepad_id, int axis, int value) {
     }
     *(axis == SDL_CONTROLLER_AXIS_LEFTX ? &last_x : &last_y) = value;
     int buttons = 0;
+	
+	if (enhanced_features0 & kFeatures0_ModernizeControls){
+	  int analog_deadzone = 10000;
+	
+	  if(analog_deadzone <= last_x || analog_deadzone * -1 >= last_x){
+	    analog_x = last_x / 256;
+	  } else {
+	    analog_x = 0;
+      }
+	
+	  if(analog_deadzone <= last_y || analog_deadzone * -1 >= last_y){
+	    analog_y = last_y / 256;
+	  } else {
+	    analog_y = 0;
+      }
+	}
+	
+	//fprintf(stderr, "%d\n",analog_x);
     if (last_x * last_x + last_y * last_y >= 10000 * 10000) {
       // in the non deadzone part, divide the circle into eight 45 degree
       // segments rotated by 22.5 degrees that control which direction to move.

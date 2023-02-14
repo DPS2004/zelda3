@@ -5725,8 +5725,9 @@ void Link_HandleVelocity() {  // 87e245
 
   link_actual_vel_x = link_actual_vel_y = 0;
   link_y_page_movement_delta = link_x_page_movement_delta = 0;
-
-  r0 += ((link_direction & 0xC) != 0 && (link_direction & 3) != 0);
+  if(!(enhanced_features0 & kFeatures0_ModernizeControls) || link_player_handler_state != 0){
+    r0 += ((link_direction & 0xC) != 0 && (link_direction & 3) != 0);
+  }
 
   if (player_near_pit_state) {
     if (player_near_pit_state == 3)
@@ -5753,6 +5754,49 @@ void Link_HandleVelocity() {  // 87e245
     link_actual_vel_x = (link_direction & 2) ? -vel : vel;
   if (link_direction & 0xC)
     link_actual_vel_y = (link_direction & 8) ? -vel : vel;
+  if ((enhanced_features0 & kFeatures0_ModernizeControls) && link_player_handler_state == 0) {
+	  
+	int velx = link_actual_vel_x;
+	int vely = link_actual_vel_y;
+	if(velx >= 127){
+		velx -= 255;
+	}
+	if(vely >= 127){
+		vely -= 255;
+	}
+	
+	
+	
+	if(velx != 0){
+		velx = (vel * analog_x) / 128;
+	}
+	if(vely != 0){
+		vely = (vel * analog_y) / 128;
+	}
+	
+	if(velx > 0){
+		velx++;
+	}
+	if(vely > 0){
+		vely++;
+	}
+	
+	//fprintf(stderr,"x: %i | ", velx);
+	//fprintf(stderr,"y: %i | ", vely);
+	
+	velx %= 255;
+	vely %= 255;
+	
+    //fprintf(stderr,"speed: %i | ",  vel);
+    //fprintf(stderr,"state: %i \n",  link_player_handler_state);
+	
+	link_actual_vel_x = velx;
+	link_actual_vel_y = vely;
+  }
+  
+  
+
+  
 
   link_actual_vel_z = 0xff;
   link_z_coord = 0xffff;
