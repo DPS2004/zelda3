@@ -375,27 +375,27 @@ void MsuPlayer_Mix(MsuPlayer *mp, int16 *audio_buffer, int audio_samples) {
       mp->preskip = 0;
     }
 //#if 0
-    if (mp->samples_to_play > 44100 * 5) {
-      mp->buffer_pos = mp->buffer_size;
-    }
+//    if (mp->samples_to_play > 44100 * 5) {
+//      mp->buffer_pos = mp->buffer_size;
+//    }
 //#endif
     int nr = IntMin(audio_samples, mp->buffer_size - mp->buffer_pos);
     int16 *buf = mp->buffer + mp->buffer_pos * 2;
     mp->buffer_pos += nr;
 
 //#if 0
-    static int t;
-    for (int i = 0; i < nr; i++) {
-      buf[i * 2 + 0] = buf[i * 2 + 1] = 5000 * sinf(2 * 3.1415 * t++ / 440);
-    }
+//    static int t;
+//    for (int i = 0; i < nr; i++) {
+//      buf[i * 2 + 0] = buf[i * 2 + 1] = 5000 * sinf(2 * 3.1415 * t++ / 440);
+//    }
 //#endif
     MixToBuffer(mp, audio_buffer, buf, nr);
 
 //#if 0
-    static FILE *f;
-    if (!f)f = fopen("out.pcm", "wb");
-    fwrite(audio_buffer, 4, nr, f);
-    fflush(f);
+//    static FILE *f;
+//    if (!f)f = fopen("out.pcm", "wb");
+//    fwrite(audio_buffer, 4, nr, f);
+//    fflush(f);
 //#endif
     audio_samples -= nr, audio_buffer += nr * 2;
   } while (audio_samples != 0);
