@@ -27,6 +27,9 @@
 #include "util.h"
 #include "audio.h"
 
+#ifdef __3DS__
+#include <3ds.h>
+#endif
 
 static bool g_run_without_emu = 0;
 
@@ -211,11 +214,15 @@ static bool SdlRenderer_Init(SDL_Window *window) {
   if (g_config.shader)
     fprintf(stderr, "Warning: Shaders are supported only with the OpenGL backend\n");
 
+  #ifndef __3DS__
   SDL_Renderer *renderer = SDL_CreateRenderer(g_window, -1,
                                               g_config.output_method == kOutputMethod_SDLSoftware ? SDL_RENDERER_SOFTWARE :
                                               SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+  #else
+  SDL_Renderer *renderer = SDL_CreateRenderer(g_window, -1, SDL_RENDERER_SOFTWARE);
+  #endif
   if (renderer == NULL) {
-    printf("Failed to create renderer: %s\n", SDL_GetError());
+    fprintf(stderr,"Failed to create renderer: %s\n", SDL_GetError());
     return false;
   }
   SDL_RendererInfo renderer_info;
@@ -236,7 +243,7 @@ static bool SdlRenderer_Init(SDL_Window *window) {
   g_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING,
                                 g_snes_width * tex_mult, g_snes_height * tex_mult);
   if (g_texture == NULL) {
-    printf("Failed to create texture: %s\n", SDL_GetError());
+    fprintf(stderr,"Failed to create texture: %s\n", SDL_GetError());
     return false;
   }
   return true;
@@ -279,6 +286,9 @@ void OpenGLRenderer_Create(struct RendererFuncs *funcs, bool use_opengl_es);
 
 #undef main
 int main(int argc, char** argv) {
+  #ifdef __3DS__
+  consoleDebugInit(debugDevice_SVC);
+  #endif
   argc--, argv++;
   const char *config_file = NULL;
   if (argc >= 2 && strcmp(argv[0], "--config") == 0) {
@@ -290,6 +300,7 @@ int main(int argc, char** argv) {
   ParseConfigFile(config_file);
   LoadAssets();
   LoadLinkGraphics();
+  fprintf(stderr,"finished loading linkgraphics\n");
 
   ZeldaInitialize();
   g_zenv.ppu->extraLeftRight = UintMin(g_config.extended_aspect_ratio, kPpuExtraLeftRight);
@@ -329,7 +340,7 @@ int main(int argc, char** argv) {
 
   // set up SDL
   if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER) != 0) {
-    printf("Failed to init SDL: %s\n", SDL_GetError());
+    fprintf(stderr,"Failed to init SDL: %s\n", SDL_GetError());
     return 1;
   }
 
@@ -349,14 +360,16 @@ int main(int argc, char** argv) {
 
   SDL_Window* window = SDL_CreateWindow(kWindowTitle, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, window_width, window_height, g_win_flags);
   if(window == NULL) {
-    printf("Failed to create window: %s\n", SDL_GetError());
+    fprintf(stderr,"Failed to create window: %s\n", SDL_GetError());
     return 1;
   }
   g_window = window;
   SDL_SetWindowHitTest(window, HitTestCallback, NULL);
 
-  if (!g_renderer_funcs.Initialize(window))
+  if (!g_renderer_funcs.Initialize(window)){
+	fprintf(stderr,"g_renderer_funcs.Initialize failure!\n");
     return 1;
+  }
 
   SDL_AudioDeviceID device = 0;
   SDL_AudioSpec want = { 0 }, have;
@@ -371,7 +384,7 @@ int main(int argc, char** argv) {
     want.callback = &AudioCallback;
     device = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
     if (device == 0) {
-      printf("Failed to open audio device: %s\n", SDL_GetError());
+      fprintf(stderr,"Failed to open audio device: %s\n", SDL_GetError());
       return 1;
     }
     g_audio_channels = have.channels;
@@ -480,7 +493,8 @@ int main(int argc, char** argv) {
 
     // if vsync isn't working, delay manually
     curTick = SDL_GetTicks();
-
+	
+	#ifndef __3DS__
     if (!g_config.disable_frame_delay) {
       static const uint8 delays[3] = { 17, 17, 16 }; // 60 fps
       lastTick += delays[frameCtr % 3];
@@ -497,6 +511,8 @@ int main(int argc, char** argv) {
         lastTick = curTick;
       }
     }
+    #endif
+	
   }
   if (g_config.autosave)
     HandleCommand(kKeys_Save + 0, true);
