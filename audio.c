@@ -158,6 +158,7 @@ void ZeldaPlayMsuAudioTrack(uint8 music_ctrl) {
 }
 
 static void MsuPlayer_CloseFile(MsuPlayer *mp) {
+  #ifndef __3DS__
   if (mp->f)
     fclose(mp->f);
   opus_decoder_destroy(mp->opus);
@@ -166,9 +167,11 @@ static void MsuPlayer_CloseFile(MsuPlayer *mp) {
   if (mp->state != kMsuState_FinishedPlaying)
     mp->state = kMsuState_Idle;
   memset(&mp->resume_info, 0, sizeof(mp->resume_info));
+  #endif
 }
 
 static void MsuPlayer_Open(MsuPlayer *mp, int orig_track, bool resume_from_snapshot) {
+  #ifndef __3DS__
   MsuPlayerResumeInfo resume;
   int actual_track = RemapMsuDeluxeTrack(mp, orig_track);
 
@@ -235,6 +238,7 @@ static void MsuPlayer_Open(MsuPlayer *mp, int orig_track, bool resume_from_snaps
   } else {
     goto READ_ERROR;
   }
+  #endif
 }
 
 static void MixToBufferWithVolume(int16 *dst, const int16 *src, size_t n, float volume) {
@@ -282,6 +286,7 @@ static void MixToBuffer(MsuPlayer *mp, int16 *dst, const int16 *src, uint32 n) {
 }
 
 void MsuPlayer_Mix(MsuPlayer *mp, int16 *audio_buffer, int audio_samples) {
+  #ifndef __3DS__
   int r;
 
   do {
@@ -369,31 +374,32 @@ void MsuPlayer_Mix(MsuPlayer *mp, int16 *audio_buffer, int audio_samples) {
       mp->buffer_size = mp->buffer_pos + n;
       mp->preskip = 0;
     }
-#if 0
+//#if 0
     if (mp->samples_to_play > 44100 * 5) {
       mp->buffer_pos = mp->buffer_size;
     }
-#endif
+//#endif
     int nr = IntMin(audio_samples, mp->buffer_size - mp->buffer_pos);
     int16 *buf = mp->buffer + mp->buffer_pos * 2;
     mp->buffer_pos += nr;
 
-#if 0
+//#if 0
     static int t;
     for (int i = 0; i < nr; i++) {
       buf[i * 2 + 0] = buf[i * 2 + 1] = 5000 * sinf(2 * 3.1415 * t++ / 440);
     }
-#endif
+//#endif
     MixToBuffer(mp, audio_buffer, buf, nr);
 
-#if 0
+//#if 0
     static FILE *f;
     if (!f)f = fopen("out.pcm", "wb");
     fwrite(audio_buffer, 4, nr, f);
     fflush(f);
-#endif
+//#endif
     audio_samples -= nr, audio_buffer += nr * 2;
   } while (audio_samples != 0);
+  #endif
 }
 
 // Maintain a queue cause the snes and audio callback are not in sync.

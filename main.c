@@ -27,6 +27,7 @@
 #include "util.h"
 #include "audio.h"
 
+
 static bool g_run_without_emu = 0;
 
 // Forwards
@@ -278,6 +279,8 @@ void OpenGLRenderer_Create(struct RendererFuncs *funcs, bool use_opengl_es);
 
 #undef main
 int main(int argc, char** argv) {
+  osSetSpeedupEnable(false);
+  svcOutputDebugString("hallo",5);
   argc--, argv++;
   const char *config_file = NULL;
   if (argc >= 2 && strcmp(argv[0], "--config") == 0) {
@@ -339,7 +342,9 @@ int main(int argc, char** argv) {
   if (g_config.output_method == kOutputMethod_OpenGL ||
       g_config.output_method == kOutputMethod_OpenGL_ES) {
     g_win_flags |= SDL_WINDOW_OPENGL;
+	#ifndef __3DS__
     OpenGLRenderer_Create(&g_renderer_funcs, (g_config.output_method == kOutputMethod_OpenGL_ES));
+	#endif
   } else {
     g_renderer_funcs = kSdlRendererFuncs;
   }
