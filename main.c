@@ -29,8 +29,6 @@
 
 static bool g_run_without_emu = 0;
 
-void ShaderInit();
-
 // Forwards
 static bool LoadRom(const char *filename);
 static void LoadLinkGraphics();
@@ -45,7 +43,6 @@ static void HandleVolumeAdjustment(int volume_adjustment);
 static void LoadAssets();
 static void SwitchDirectory();
 
-
 enum {
   kDefaultFullscreen = 0,
   kMaxWindowScale = 10,
@@ -55,7 +52,6 @@ enum {
 };
 
 static const char kWindowTitle[] = "The Legend of Zelda: A Link to the Past";
-
 static uint32 g_win_flags = SDL_WINDOW_RESIZABLE;
 static SDL_Window *g_window;
 
@@ -278,7 +274,7 @@ static const struct RendererFuncs kSdlRendererFuncs  = {
   &SdlRenderer_EndDraw,
 };
 
-void OpenGLRenderer_Create(struct RendererFuncs *funcs);
+void OpenGLRenderer_Create(struct RendererFuncs *funcs, bool use_opengl_es);
 
 #undef main
 int main(int argc, char** argv) {
@@ -308,6 +304,7 @@ int main(int argc, char** argv) {
                        g_config.extend_y * kPpuRenderFlags_Height240 |
                        g_config.no_sprite_limits * kPpuRenderFlags_NoSpriteLimits;
   ZeldaEnableMsu(g_config.enable_msu);
+  ZeldaSetLanguage(g_config.language);
 
   if (g_config.fullscreen == 1)
     g_win_flags ^= SDL_WINDOW_FULLSCREEN_DESKTOP;
@@ -339,9 +336,10 @@ int main(int argc, char** argv) {
   int window_width  = custom_size ? g_config.window_width  : g_current_window_scale * g_snes_width;
   int window_height = custom_size ? g_config.window_height : g_current_window_scale * g_snes_height;
 
-  if (g_config.output_method == kOutputMethod_OpenGL) {
+  if (g_config.output_method == kOutputMethod_OpenGL ||
+      g_config.output_method == kOutputMethod_OpenGL_ES) {
     g_win_flags |= SDL_WINDOW_OPENGL;
-    OpenGLRenderer_Create(&g_renderer_funcs);
+    OpenGLRenderer_Create(&g_renderer_funcs, (g_config.output_method == kOutputMethod_OpenGL_ES));
   } else {
     g_renderer_funcs = kSdlRendererFuncs;
   }
@@ -853,6 +851,12 @@ static void LoadAssets() {
     g_asset_ptrs[i] = data + offset;
     offset += size;
   }
+
+  if (g_config.features0 & kFeatures0_DimFlashes) { // patch dungeon floor palettes
+    kPalette_DungBgMain[0x484] = 0x70;
+    kPalette_DungBgMain[0x485] = 0x95;
+    kPalette_DungBgMain[0x486] = 0x57;
+  }
 }
 
 // Go some steps up and find zelda3.ini
@@ -879,4 +883,8 @@ static void SwitchDirectory() {
     while (pos != 0 && buf[pos] != '/' && buf[pos] != '\\')
       pos--;
   }
+}
+
+MemBlk FindInAssetArray(int asset, int idx) {
+  return FindIndexInMemblk((MemBlk) { g_asset_ptrs[asset], g_asset_sizes[asset] }, idx);
 }
