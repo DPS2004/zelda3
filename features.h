@@ -31,7 +31,7 @@ enum {
   kFeatures0_SkipIntroOnKeypress = 128,
   kFeatures0_ShowMaxItemsInYellow = 256,
   kFeatures0_MoreActiveBombs = 512,
-  kFeatures0_ModernizeControls = 65536,
+  kFeatures0_ModernizeControls = 131072,
 
   // This is set for visual fixes that don't affect game behavior but will affect ram compare.
   kFeatures0_WidescreenVisualFixes = 1024,
